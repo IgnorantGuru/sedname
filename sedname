@@ -1,0 +1,203 @@
+#!/bin/bash
+# Script Name: sedname    http://igurublog.wordpress.com/downloads/script-sedname 
+# Requires: 
+# License: GNU GENERAL PUBLIC LICENSE Version 3 http://www.gnu.org/licenses/gpl-3.0.txt
+
+help ()
+{
+	cat << EOF
+sedname version 1.0.1
+Batch-renames files using a sed script
+
+Usage: sedname [OPTIONS] SEDSCRIPT FILE ...
+Usage: find [...] | sedname [OPTIONS] SEDSCRIPT
+
+Example: sedname 's/\(.*\)\.jpg/\1.jpeg/' *.jpg
+Example: find /mypics | sedname 's/\(.*\)\.jpg/\1.jpeg/'
+
+OPTIONS:
+--sim           simulate only
+--dir           rename directories too
+
+Use #D to insert a number with D digits forming a unique filename
+    Example: sedname 's/thisname.*/thatname#3/' *
+    ( changes thisname* to thatname001, thatname002, ... )
+
+Use #0 in replacement name to insert a number if needed
+    Example: sedname 's/thisname.*/thatname#0/' *
+    ( changes thisname* to thatname, thatname1, thatname2, ... )
+
+Instructions and updates:
+http://igurublog.wordpress.com/downloads/script-sedname/
+
+EOF
+	exit
+}
+
+index=0
+while [ "$1" != "" ];
+do
+	if [ "${1:0:1}" = "-" ]; then
+		case "$1" in
+			--help | -help )
+				help
+				;;
+			--sim )
+				sim=1
+				echo "* Simulation Mode *" > /dev/stderr
+				echo
+				;;
+			--dir )
+				rendir=1
+				;;
+			* )
+				echo "Unknown option $1" > /dev/stderr
+				exit 1
+				;;
+		esac
+	else
+		if (( index == 0 )); then
+			sedscript="$1"
+			(( index += 1 ))
+		else
+			rf[$rfcnt]="$1"
+			(( rfcnt += 1 ))
+		fi
+	fi
+	shift
+done
+
+if (( index == 0 )); then
+	echo "Missing sed script" > /dev/stderr
+	echo
+	help
+fi
+
+testexist()   # $1 = pathname ; returns 1 if exists, else 0
+{
+	if [ -e "$1" ]; then
+		return 1
+	elif (( sim == 1 )); then
+		simusedx=0
+		while (( simusedx < simusedcnt )); do
+			if [ "$1" = "${simused[$simusedx]}" ]; then
+				return 1
+			fi
+			(( simusedx += 1 ))
+		done
+	fi
+	return 0
+}
+
+rfx=0
+while (( rfx < rfcnt )) || (( rfcnt == 0 )); do
+	if (( rfcnt == 0 )); then
+		read -r r
+		if [ "$r" = "" ]; then
+			break
+		fi
+	else
+		r="${rf[$rfx]}"
+	fi
+	if [ "$r" != "" ]; then
+		if [ ! -e "$r" ]; then
+			echo "File not found: $r" > /dev/stderr
+		elif [ -d "$r" ] && (( rendir != 1 )); then
+				echo "$r/ -x> (directory not renamed)" > /dev/stderr			
+		else
+			rbase=`basename "$r"`
+			rdir=`dirname "$r"`
+			if [ -d "$r" ]; then
+				dispr="$r/"
+			else
+				dispr="$r"
+			fi
+			rs=`echo "$rbase" | sed "$sedscript"`
+			rs="${rs%%[[:blank:]]}"
+			rnew=""
+			if [ "$rs" = "" ]; then
+				echo "$dispr -x> (invalid name)" > /dev/stderr
+			elif [ "$rs" = "$rbase" ]; then
+				echo "$dispr -x> (no change)" > /dev/stderr
+			else
+				if [ "$rs" != "${rs/\#[0-9]/}" ]; then
+					# number substitution
+					# get number of digits to use
+					sn=0
+					while (( sn < 10 )); do
+						if [ "$rs" != "${rs/\#$sn/}" ]; then
+							break
+						fi
+						(( sn += 1 ))
+					done
+					if (( sn != 10 )); then
+						if (( sn == 0 )); then
+							# number needed?
+							rtest="${rs/\#$sn/}"
+							testexist "$rdir/$rtest"
+							if [ $? = 0 ]; then
+								rnew="$rtest"
+							fi
+						fi
+						if [ "$rnew" = "" ]; then
+							# get a unique filename with number
+							rx=1
+							while (( 1 )); do
+								rxlen="${#rx}"
+								if (( sn == 0 )); then
+									rxform=$rx
+								elif (( rxlen > sn )); then
+									break
+								else
+									rxform="00000000$rx"
+									rxformlen=${#rxform}
+									(( rxtrim = rxformlen - sn ))
+									rxform="${rxform:$rxtrim}"
+								fi
+								rtest="${rs/\#$sn/$rxform}"
+								testexist "$rdir/$rtest"
+								if [ $? = 0 ]; then
+									rnew="$rtest"
+									break
+								fi
+								(( rx += 1 ))
+							done
+						fi
+					fi
+				else
+					# no number substitution
+					rnew="$rs"
+				fi
+				# rename / report
+				if [ "$rnew" = "" ]; then
+					echo "$dispr -x> (all names exist)" > /dev/stderr
+				else
+					testexist "$rdir/$rnew"
+					if [ $? = 1 ]; then
+						echo "$dispr -x> (name exists)" > /dev/stderr
+					else
+						echo "$dispr --> $rnew" > /dev/stderr
+						if (( sim != 1 )); then
+							mv "$dispr" "$rdir/$rnew"
+						else
+							simused[simusedcnt]="$rdir/$rnew"
+							(( simusedcnt += 1 ))
+						fi
+					fi
+				fi
+			fi
+		fi
+	fi
+	(( rfx += 1 ))
+done
+
+if (( sim == 1 )); then
+	echo
+	echo "* Simulation Mode *" > /dev/stderr
+fi
+
+exit
+
+# CHANGELOG
+# 1.0.1  removed valid sed script test
+

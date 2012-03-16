@@ -1,0 +1,49 @@
+README for sedname
+
+
+OVERVIEW
+
+sedname passes filenames through the sed stream editor using a sed script
+you specify, and renames the files to the result. If you are familiar with
+sed, sedname provides a familiar way to rename batches of files quickly.
+sedname can also insert sequential numbers into the filenames to make
+them unique, and it includes a simulation mode.
+
+Homepage & Instructions:
+    http://igurublog.wordpress.com/downloads/script-sedname/
+
+Downloads:
+    https://github.com/IgnorantGuru/sedname
+    https://github.com/IgnorantGuru/sedname/tree/master/packages
+
+Debian/Ubuntu PPA:
+    http://igurublog.wordpress.com/downloads/ppa/
+
+
+INSTALLATION
+
+To install:
+
+    wget https://github.com/IgnorantGuru/sedname/raw/master/sedname
+    sudo install sedname /usr/local/bin/sedname
+
+To remove:
+    
+    sudo rm /usr/local/bin/sedname
+
+
+LICENSE
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
