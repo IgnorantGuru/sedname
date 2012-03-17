@@ -2,6 +2,7 @@ README for sedname
 
 
 OVERVIEW
+========
 
 sedname passes filenames through the sed stream editor using a sed script
 you specify, and renames the files to the result. If you are familiar with
@@ -13,14 +14,18 @@ Homepage & Instructions:
     http://igurublog.wordpress.com/downloads/script-sedname/
 
 Downloads:
-    https://github.com/IgnorantGuru/sedname
+    https://github.com/IgnorantGuru/sedname/tags
     https://github.com/IgnorantGuru/sedname/tree/master/packages
 
 Debian/Ubuntu PPA:
     http://igurublog.wordpress.com/downloads/ppa/
 
+Bug Reports:
+    https://github.com/IgnorantGuru/sedname/issues
+
 
 INSTALLATION
+============
 
 To install:
 
@@ -33,6 +38,7 @@ To remove:
 
 
 LICENSE
+=======
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
