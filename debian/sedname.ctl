@@ -9,3 +9,4 @@ Description: Batch-renames files using a sed script
 Copyright: COPYING
 Changelog: changelog
 Readme: README
+Files: sedname /usr/bin/
